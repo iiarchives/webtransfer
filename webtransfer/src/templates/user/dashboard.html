@@ -1,35 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-    <style>
-        #loading-content {
-            width: 50%;
-            height: 70%;
-            display: none;
-        }
-        .file-container h4 {
-            margin-top: .5rem;
-        }
-        .file-container hr {
-            margin: .5rem 0;
-        }
-        .file-container {
-            width: 40%;
-            margin: 25px;
-            height: 100%;
-            margin-top: 0px;
-            margin-bottom: 0px;
-            border-radius: 5px;
-            border: 1px solid var(--bg-color-2);
-        }
-    </style>
-    <div id = "loading-content" class = "pcenter" style = "top: 45%;">  <!-- 45% to make it closer to navbar -->
+    <div id = "loading-content" class = "pcenter" style = "top: 45%; width: 65%;">  <!-- 45% to make it closer to navbar -->
         <h3 class = "tcenter">Hello, {{ session["userauth"]["username"] }}.</h3>
         <div style = "margin: 25px;"></div>
         <div id = "files-recv" class = "file-container" style = "float: left;">
             <h4 class = "tcenter">Incoming</h4>
             <hr>
         </div>
-        <div id = "files-send" class = "file-container" style = "float: right;">
+        <div id = "files-sent" class = "file-container" style = "float: right;">
             <h4 class = "tcenter">Sent</h4>
             <hr>
         </div>
@@ -38,7 +16,7 @@
 {% endblock %}
 {% block js %}
     <script src = "/s/js/bootbox.js"></script>
-    <script src = "/s/js/wt.send.min.js"></script>
+    <script src = "/s/js/wt.send.js"></script>
     <script src = "/s/js/wt.spinner.min.js"></script>
     <script>
         startSpinner();
@@ -46,6 +24,48 @@
             stopSpinner();
             $("#loading-content").css("display", "block");
             $("footer").text(`You are using ${r.usage.percent}% (${r.usage.string}/6GB) of your account storage.`);
+            for (let recv of r.recv) {
+                let filename = recv.filename;
+                if (filename.length > 41) filename = filename.substring(0, 41) + "...";
+                $("#files-recv").append(`
+                <div class = "card text-white bg-dark">
+                    <div class = "card-header">${recv.username} <span class = "filesize">${recv.filesize}</span></div>
+                    <div class = "card-body">
+                        <h6 class = "card-title"><a class = "btn btn-primary" href = "/user/down/${recv.userhash}/${recv.filename}"><i class = "bi bi-download"></i> ${filename}</a></h6>
+                    </div>
+                </div>
+                `);
+            }
+            for (let sent of r.sent) {
+                let filename = sent.filename;
+                if (filename.length > 41) filename = filename.substring(0, 41) + "...";
+                $("#files-sent").append(`<div class = "card text-white bg-dark">
+                    <div class = "card-header">${sent.username} <span class = "filesize">${sent.filesize}</span></div>
+                    <div class = "card-body">
+                        <h6 class = "card-title">
+                            <a class = "btn btn-danger" data-action = "delete"><i class = "bi bi-trash"></i> ${filename}</a>
+                            <button class = "btn btn-secondary" data-action = "recipients"><i class = "bi bi-people"></i></button>
+                        </h6>
+                    </div>
+                </div>`);
+
+                // Handle showing recipients
+                $("#files-sent:last-child").find(`[data-action="recipients"]`).on("click", () => {
+                    bootbox.alert({ title: "Recipients", message: sent.recipients.join(", ") });
+                });
+
+                // Handle deleting files
+                $("#files-sent:last-child").find(`[data-action="delete"]`).on("click", () => {
+                    bootbox.confirm({
+                        title: "Confirm File Deletion",
+                        message: `Are you sure you wish to delete:<br><b><u>${sent.filename}</u></b><br><br>It cannot be recovered after deletion.`,
+                        callback: (c) => {
+                            if (!c) return;
+                            $.post("/user/api/fdelete", { filename: sent.filename }, (r) => { window.location.reload(); });
+                        }
+                    });
+                });
+            }
         });
     </script>
 {% endblock %}

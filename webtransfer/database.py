@@ -27,7 +27,7 @@ class InheritedDB(object):
         self.cursor.execute(init)
 
 class AuthenticationDB(InheritedDB):
-    def __init__(self, bcrypt) -> None:
+    def __init__(self, handler, bcrypt) -> None:
         super().__init__("""
         CREATE TABLE IF NOT EXISTS users (
             username text,
@@ -36,6 +36,7 @@ class AuthenticationDB(InheritedDB):
             userhash text
         )
         """, "auth.db")
+        self.handler = handler
         self.bcrypt = bcrypt
 
     def generate_user_hash(self) -> str | None:
@@ -99,7 +100,7 @@ class AuthenticationDB(InheritedDB):
         return self.cursor.fetchone()["username"]
 
 class UploadDB(InheritedDB):
-    def __init__(self, bcrypt) -> None:
+    def __init__(self, handler, bcrypt) -> None:
         super().__init__("""
         CREATE TABLE IF NOT EXISTS uploads (
             userhash text,
@@ -109,7 +110,11 @@ class UploadDB(InheritedDB):
             expires long
         )
         """, "uploads.db")
+        self.handler = handler
         self.bcrypt = bcrypt
+
+        # Initialization
+        self.authdb = self.handler.db("auth")  # Nice locally cached version
 
     def register_file(self, user_hash: str, filename: str, filesize: str, recipients: str) -> str | None:
         self.cursor.execute("SELECT userhash FROM uploads WHERE userhash=? AND filename=?", (user_hash, filename))
@@ -123,11 +128,17 @@ class UploadDB(InheritedDB):
         # BEWARE: NORMALLY THIS WOULD COUNT AS SQL INJECTION, HOWEVER USER_HASH IS STORED IN SESSION DATA
         # THE USER HAS ABSOLUTELY NO CONTROL OVER THIS VARIABLE, AND THEREFOR THIS STATEMENT IS SAFE.
         self.cursor.execute(f"SELECT userhash, filename, filesize, expires FROM uploads WHERE instr(recipients, '{user_hash}') > 0")
-        return self.cursor.fetchall()
+        return [c | {"username": self.authdb.hash_to_username(c["userhash"])} for c in self.cursor.fetchall()]
 
     def get_files_of_author(self, user_hash: str) -> list:
-        self.cursor.execute("SELECT filename, filesize, recipients, expires FROM uploads WHERE userhash=?", (user_hash,))
-        return self.cursor.fetchall()
+        self.cursor.execute("SELECT userhash, filename, filesize, recipients, expires FROM uploads WHERE userhash=?", (user_hash,))
+        return [
+            c | {
+                "username": self.authdb.hash_to_username(c["userhash"]),
+                "recipients": [self.authdb.hash_to_username(r) for r in c["recipients"].split(",")]
+            }
+            for c in self.cursor.fetchall()
+        ]
 
     def can_download(self, user_hash: str, author_hash: str, filename: str) -> bool:
         # BEWARE: NORMALLY THIS WOULD COUNT AS SQL INJECTION, HOWEVER USER_HASH IS STORED IN SESSION DATA
@@ -147,7 +158,7 @@ class DBHandler(object):
         self.mapping = {"auth": AuthenticationDB, "uploads": UploadDB}
 
     def db(self, key: str) -> InheritedDB:
-        db = self.cache.get(key, self.mapping[key](self.bcrypt))
+        db = self.cache.get(key, self.mapping[key](self, self.bcrypt))
         if key not in self.cache:
             self.cache[key] = db
 

@@ -71,18 +71,17 @@ def route_user_upload() -> None:
         os.mkdir(user_storage)
 
     elif calculate_usage(uh) + file.tell() > upload_limit:
-        print("YO THIS GUY DOESN'T HAVE THE SPACE FOR THAT!!!!")
         return jsonify(code = 400, message = "You don't have the space to upload that file."), 400
 
     file.seek(0, 0)
     file.save(os.path.join(user_storage, filename))
     return jsonify(code = 200, message = "File uploaded successfully."), 200
 
-@app.route("/user/api/preupload", methods = ["GET"])
+@app.route("/user/api/preupload", methods = ["POST"])
 def route_user_preupload() -> None:
     try:
         uh = session["userauth"]["userhash"]
-        fn, fs = request.args["name"], int(request.args["size"])
+        fn, fs = request.form["name"], int(request.form["size"])
         if fs < 0:
             raise ValueError("Invalid filesize provided.")
 
@@ -138,9 +137,9 @@ def route_user_fileregister() -> None:
 
     return jsonify(code = 200), 200
 
-@app.route("/user/api/dfile", methods = ["GET"])
+@app.route("/user/api/fdelete", methods = ["POST"])
 def route_user_deletefile() -> None:
-    filename = request.args.get("name", "")
+    filename = request.form.get("filename", "")
     if not filename.strip():
         return jsonify(code = 400, message = "No filename provided."), 400
 

@@ -59,7 +59,7 @@ function performUpload(e) {
             }
         }
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: "/user/api/preupload",
             data: {
                 name: n.name,
@@ -91,13 +91,12 @@ function askForRecipients() {
                     if (null == n) {
                         let e = $("#userInput").val().split("\n").filter(e => e);
                         if (!e.length) return !1;
-                        $.get("/user/api/uvalidate", {
-                            users: e.join(",")
-                        }, a => {
+                        console.log(e);
+                        $.post("/user/api/uvalidate", { users: e }, (a) => {
                             let r = "<p>Sending to the following recipients:</p><ul>";
                             for (let t of e) r += `<li style = "color: var(--bs-${a.users[t]?"teal":"red"});">${a.users[t]||t}</li>`;
                             $("#popup-content").html(r + "</ul>"), t = e, (n = !Object.values(a.users).includes(null)) || $("#popup-content").html($("#popup-content").html() + "<p>This list contains invalid users, you will have to reenter them.</p>")
-                        })
+                        });
                     } else n ? performUpload(t) : ($("#popup-content").html(e), $("#userInput").val(t.join("\n")), n = null);
                     return !1
                 }
