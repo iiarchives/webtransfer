@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+    <form id = "authform" class = "pcenter"  method = "POST" action = "/user/register">
+        <h3>Account Registration</h3>
+        <div class = "form-group">
+            <label for = "usernameInput">Username</label>
+            <input type = "text" class = "form-control" id = "usernameInput" name = "username" placeholder = "Pick a username" value = "{{ username }}" autofocus>
+            <div class = "invalid-feedback" id = "username-feedback"></div>
+        </div>
+        <div class = "form-group">
+            <label for = "passwordInput">Password</label>
+            <input type = "password" class = "form-control" id = "passwordInput" name = "password" placeholder = "Enter password">
+            <div class = "invalid-feedback" id = "password-feedback"></div>
+        </div>
+        <a class = "form-redir" href = "/user/login">Login instead</a>
+        <button class = "btn btn-success">Create Account</button>
+    </form>
+{% endblock %}
+{% block js %}
+    <script>
+        function setUsernameError(e) {
+            $("#usernameInput").addClass("is-invalid");
+            $("#username-feedback").html(e);
+        }
+        function setPasswordError(e) {
+            $("#passwordInput").addClass("is-invalid");
+            $("#password-feedback").html(e);
+        }
+
+        let error = "{{ error }}";
+        if (error.length) {
+            switch (error) {
+                case "username-too-short":
+                    setUsernameError("This username is too short (min. 4 characters).");
+                    break;
+                case "username-too-long":
+                    setUsernameError("This username is too long (max. 32 characters).");
+                    break;
+                case "username-taken":
+                    setUsernameError("The given username is already in use.");
+                    break;
+                case "password-too-short":
+                    setPasswordError("This password is too short (min. 8 characters).");
+                    break;
+                case "uuid-failure":
+                    setPasswordError("Failed to generate UUID, please retry request.");
+                    break;
+                case "fill-all-fields":
+                    setUsernameError("Please fill out all fields.");
+                    setPasswordError("Please fill out all fields.");
+                    break;
+            }
+        }
+    </script>
+{% endblock %}

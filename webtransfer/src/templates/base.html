@@ -1,0 +1,170 @@
+<!--
+    Copyright (c) 2022-present iiPython
+    https://github.com/ii-Python/webtransfer
+-->
+
+<!doctype html>
+<html lang = "en">
+    <head>
+        <meta charset = "utf-8">
+        <noscript><meta http-equiv = "refresh" content = "0;url=/nojs"></noscript>
+
+        <!-- CSS -->
+        <link href = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel = "stylesheet">
+        <link href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel = "stylesheet">
+        <style>
+            :root {
+                --fg-color: #fefefe;
+                --bg-color-1: #121212;
+                --bg-color-2: #242424;
+            }
+            html, body, #content {
+                height: 100%;
+            }
+            body {
+                color: var(--fg-color);
+                background-color: var(--bg-color-1);
+            }
+            a {
+                text-decoration: none;
+            }
+            i.icon-margin {
+                margin-left: 5px;
+            }
+            nav {
+                height: 64px;
+                padding: 5px;
+                background-color: var(--bg-color-2);
+            }
+            tbody {
+                border-top: 2px solid #cbcbcb !important;
+            }
+            input.is-invalid {
+                border: 1px solid var(--bs-red) !important;
+            }
+            footer {
+                left: 0px;
+                width: 100%;
+                bottom: 10px;
+                position: fixed;
+                text-align: center;
+            }
+            form#authform {
+                width: 500px;
+                padding: 25px;
+                border-radius: 8px;
+                background-color: var(--bg-color-2);
+            }
+            form#authform a.form-redir {
+                top: 8px;
+                float: left;
+                position: relative;
+                text-decoration: none;
+            }
+            form#authform h3 {
+                margin-bottom: 20px;
+            }
+            form#authform button {
+                float: right;
+            }
+            form#authform .form-group {
+                margin-bottom: 25px;
+            }
+            form#authform .form-group input {
+                color: var(--fg-color-1);
+                border: 1px solid var(--bg-color-1);
+                background-color: var(--bg-color-1);
+            }
+            form#authform .form-group label {
+                margin-bottom: 5px;
+            }
+            ul.navbar-nav li.nav-item:not(:first-child) {
+                padding-left: 15px;
+            }
+            .dropdown-item {
+                cursor: pointer;
+            }
+            .pcenter {
+                top: 50%;
+                left: 50%;
+                position: absolute;
+                transform: translateX(-50%) translateY(-50%) !important;
+            }
+            .tcenter {
+                text-align: center;
+            }
+            #content {
+                padding: 25px;
+            }
+
+            /* Bootstrap custom modal dark theme */
+            .bootbox-close-button {
+                display: none;
+            }
+            .modal-content {
+                background-color: var(--bg-color-1);
+            }
+            .modal-dialog {
+                width: 650px;
+                max-width: 650px;
+            }
+            .modal-header {
+                border-bottom: 1px solid var(--bg-color-2);
+            }
+            .modal-footer {
+                border-top: 1px solid var(--bg-color-2);
+            }
+        </style>
+
+        <title>WebTransfer</title>
+    </head>
+    <body>
+
+        <!-- Navbar -->
+        <nav class = "navbar navbar-expand-lg">
+            <div class = "container-fluid">
+                <ul class = "navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class = "nav-item">
+                        <a class = "btn btn-primary" href = "/"><i class = "bi bi-house"></i></a>
+                    </li>
+
+                    {# "Head to Dashboard" button for people who get lost #}
+                    {% if "userauth" in session and request.endpoint != "route_user_dash" %}
+                    <li class = "nav-item">
+                        <a class = "btn btn-success" href = "/user/dashboard">Head to Dashboard <i class = "bi bi-cursor"></i></a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class = "navbar-nav ms-auto">
+                    {% if "userauth" in session %}
+                        {# Enable the file upload button in the dashboard #}
+                        {% if request.endpoint == "route_user_dash" %}<button id = "btnSendFile" class = "btn btn-primary"><i class = "bi bi-cloud-arrow-up"></i></button>{% endif %}
+
+                        <!-- Account dropdown -->
+                        <li class = "nav-item dropdown">
+                            <button class = "btn btn-secondary dropdown-toggle" href = "#" id = "accountDropdown" data-bs-toggle = "dropdown" aria-expanded = "false">
+                                <i class = "bi bi-person"></i> {{ session["userauth"]["username"] }}
+                            </button>
+                            <ul class = "dropdown-menu dropdown-menu-end" aria-labelledby = "accountDropdown">
+                                <li><a class = "dropdown-item" href = "/user/friends">Friends</a></li>
+                                <li><a class = "dropdown-item" href = "/user/settings">Settings</a></li>
+                                <li><hr class = "dropdown-divider"></li>
+                                <li><a class = "dropdown-item text-danger" href = "/user/logout">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}<a class = "btn btn-primary" href = "/user/login"><i class = "bi bi-box-arrow-in-right"></i> Login</a>{% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <div id = "content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- JS -->
+        <script src = "https://code.jquery.com/jquery-3.6.0.min.js" integrity = "sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin = "anonymous"></script>
+        <script src = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity = "sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin = "anonymous"></script>
+        {% block js %}{% endblock %}
+    </body>
+</html>

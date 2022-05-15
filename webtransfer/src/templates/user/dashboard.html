@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+    <style>
+        #loading-content {
+            width: 50%;
+            height: 70%;
+            display: none;
+        }
+        .file-container h4 {
+            margin-top: .5rem;
+        }
+        .file-container hr {
+            margin: .5rem 0;
+        }
+        .file-container {
+            width: 40%;
+            margin: 25px;
+            height: 100%;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            border-radius: 5px;
+            border: 1px solid var(--bg-color-2);
+        }
+    </style>
+    <div id = "loading-content" class = "pcenter" style = "top: 45%;">  <!-- 45% to make it closer to navbar -->
+        <h3 class = "tcenter">Hello, {{ session["userauth"]["username"] }}.</h3>
+        <div style = "margin: 25px;"></div>
+        <div id = "files-recv" class = "file-container" style = "float: left;">
+            <h4 class = "tcenter">Incoming</h4>
+            <hr>
+        </div>
+        <div id = "files-send" class = "file-container" style = "float: right;">
+            <h4 class = "tcenter">Sent</h4>
+            <hr>
+        </div>
+    </div>
+    <footer></footer>
+{% endblock %}
+{% block js %}
+    <script src = "/s/js/bootbox.js"></script>
+    <script src = "/s/js/wt.send.min.js"></script>
+    <script src = "/s/js/wt.spinner.min.js"></script>
+    <script>
+        startSpinner();
+        $.get("/user/api/files", (r) => {
+            stopSpinner();
+            $("#loading-content").css("display", "block");
+            $("footer").text(`You are using ${r.usage.percent}% (${r.usage.string}/6GB) of your account storage.`);
+        });
+    </script>
+{% endblock %}

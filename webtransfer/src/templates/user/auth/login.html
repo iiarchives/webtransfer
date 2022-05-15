@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <form id = "authform" class = "pcenter" method = "POST" action = "/user/login">
+        <h3>Login to WebTransfer</h3>
+        <div class = "form-group">
+            <label for = "usernameInput">Username</label>
+            <input type = "text" class = "form-control{{ ' is-invalid' if message else '' }}" id = "usernameInput" name = "username" placeholder = "Enter your username" autofocus>
+        </div>
+        <div class = "form-group">
+            <label for = "passwordInput">Password</label>
+            <input type = "password" class = "form-control{{ ' is-invalid' if message else '' }}" id = "passwordInput" name = "password" placeholder = "Enter your password">
+            <div class = "invalid-feedback">{{ message }}</div>
+        </div>
+        <a class = "form-redir" href = "/user/register">Need an account?</a>
+        <button class = "btn btn-success">Login</button>
+    </form>
+{% endblock %}
