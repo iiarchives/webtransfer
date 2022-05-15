@@ -4,12 +4,19 @@
 import os
 import uuid
 import time
+import string
 import sqlite3
 
 # Initialization
 database_directory = os.path.join(os.path.dirname(__file__), "../db")
 if not os.path.isdir(database_directory):
     os.mkdir(database_directory)
+
+def strip_punctuation(s: str) -> str:
+    for c in string.punctuation:
+        s = s.replace(c, "")
+
+    return s
 
 # Database class
 class InheritedDB(object):
@@ -41,7 +48,7 @@ class AuthenticationDB(InheritedDB):
         return None
 
     def check_login(self, username: str, password: str) -> dict | None:
-        self.cursor.execute("SELECT username, password, userhash FROM users WHERE userlwrd=?", (username.lower(),))
+        self.cursor.execute("SELECT username, password, userhash FROM users WHERE userlwrd=?", (strip_punctuation(username.lower()),))
         data = self.cursor.fetchone()
         if not data:
             return None
@@ -53,7 +60,7 @@ class AuthenticationDB(InheritedDB):
         return data
 
     def check_users(self, users: list, return_hashes: bool = False) -> dict:
-        user_str = ",".join([f"'{u.lower()}'" for u in users])
+        user_str = ",".join([f"'{strip_punctuation(u.lower())}'" for u in users])
         self.cursor.execute(f"""SELECT username, userlwrd, userhash FROM users WHERE userlwrd IN ({user_str}) OR userhash IN ({user_str})""")
 
         # Calculate
@@ -69,6 +76,9 @@ class AuthenticationDB(InheritedDB):
         username_error = "username-too-short" if len(username) < 4 else "username-too-long" if len(username) > 32 else None
         if username_error is not None:
             return username_error
+
+        elif [c for c in username if c in string.punctuation]:
+            return "username-invalid"
 
         elif len(password) < 8:
             return "password-too-short"

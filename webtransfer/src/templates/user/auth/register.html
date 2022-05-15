@@ -39,6 +39,9 @@
                 case "username-taken":
                     setUsernameError("The given username is already in use.");
                     break;
+                case "username-invalid":
+                    setUsernameError("The given username contains invalid characters.");
+                    break;
                 case "password-too-short":
                     setPasswordError("This password is too short (min. 8 characters).");
                     break;
