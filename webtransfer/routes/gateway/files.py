@@ -2,12 +2,12 @@
 
 # Modules
 import os
-from webtransfer import app, rpath
+from webtransfer import app
 from werkzeug.utils import secure_filename
 from flask import request, session, jsonify, send_file
 
 # Initialization
-upload_directory = os.path.abspath(rpath("../db/uploads"))
+upload_directory = app.config["UPLOAD_DIRECTORY"]
 if not os.path.isdir(upload_directory):
     os.makedirs(upload_directory)
 
@@ -53,7 +53,7 @@ def route_user_files() -> None:
         code = 200,
         recv = recv,
         sent = sent,
-        usage = {"percent": round(usage / upload_limit, 2) * 100, "string": scale_bytes(usage)}
+        usage = {"percent": round((usage / upload_limit) * 100, 2), "string": scale_bytes(usage)}
     ), 200
 
 @app.route("/user/api/upload", methods = ["POST"])

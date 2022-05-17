@@ -24,23 +24,27 @@
             stopSpinner();
             $("#loading-content").css("display", "block");
             $("footer").text(`You are using ${r.usage.percent}% (${r.usage.string}/6GB) of your account storage.`);
-            for (let recv of r.recv) {
+
+            // Load given API content
+            let now = Date.now();
+            let getExpiry = (e) => Math.round((e - (now / 1000 | 0)) / 3600);
+            for (let recv of r.recv.sort((a) => a.expires)) {
                 let filename = recv.filename;
                 if (filename.length > 41) filename = filename.substring(0, 41) + "...";
-                $("#files-recv").append(`
-                <div class = "card text-white bg-dark">
-                    <div class = "card-header">${recv.username} <span class = "filesize">${recv.filesize}</span></div>
+                $("#files-recv").append(`<div class = "card text-white bg-dark">
+                    <div class = "card-header">${recv.username} <span class = "fileinfo">${recv.filesize} (${getExpiry(recv.expires)}hrs)</span></div>
                     <div class = "card-body">
-                        <h6 class = "card-title"><a class = "btn btn-primary" href = "/user/down/${recv.userhash}/${recv.filename}"><i class = "bi bi-download"></i> ${filename}</a></h6>
+                        <h6 class = "card-title">
+                            <a class = "btn btn-primary" href = "/user/down/${recv.userhash}/${recv.filename}"><i class = "bi bi-download"></i> ${filename}</a>
+                        </h6>
                     </div>
-                </div>
-                `);
+                </div>`);
             }
-            for (let sent of r.sent) {
+            for (let sent of r.sent.sort((a) => a.expires)) {
                 let filename = sent.filename;
                 if (filename.length > 41) filename = filename.substring(0, 41) + "...";
                 $("#files-sent").append(`<div class = "card text-white bg-dark">
-                    <div class = "card-header">${sent.username} <span class = "filesize">${sent.filesize}</span></div>
+                    <div class = "card-header">${sent.username} <span class = "fileinfo">${sent.filesize} (${getExpiry(sent.expires)}hrs)</span></div>
                     <div class = "card-body">
                         <h6 class = "card-title">
                             <a class = "btn btn-danger" data-action = "delete"><i class = "bi bi-trash"></i> ${filename}</a>
