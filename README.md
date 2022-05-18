@@ -54,10 +54,10 @@ Before you attempt to launch WebTransfer, see [Configuration](#configuration) an
 In order for Flask to use sessions properly, you require a secret key.  
 To pass this to WebTransfer, either use the `SECRET_KEY` environment variable or use a `.env` file.  
 
-> If you're using a `.env` file, place the following in it:
+> If you're using a `.env` file, place the following in it:  
 > `SECRET_KEY="hopefully a long and secure string"`
 
-> If you're running via command line:
+> If you're running via command line:  
 > `SECRET_KEY="hopefully a long and secure string" python3 ...`
 
 For security reasons, a quite important thing to do is migrate from the built-in Flask sessions to the open-source [Flask-Session](https://redis.io/) module. This however will require an installation of [Redis](https://redis.io/), and could potentially slow down your instance (though by milliseconds).  
@@ -81,8 +81,8 @@ In the event that you do use gunicorn you could run the following:
 ### Launching
 
 Before you launch, ensure the following:
-    - You have [Redis](https://redis.io/) installed on your system (if using [Flask-Session](https://flask-session.readthedocs.io/en/latest/))
-    - You have enough space for uploads on the current drive
+- You have [Redis](https://redis.io/) installed on your system (if using [Flask-Session](https://flask-session.readthedocs.io/en/latest/))
+- You have enough space for uploads on the current drive
 
 If you are launching with any form of uWSGI server, make sure you **only have 1 worker**.  
 The threads that WebTransfer uses for Redis and reaper will unfortunately break and likely corrupt your database when running from more than 1 worker.
