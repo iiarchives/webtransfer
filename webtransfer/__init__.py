@@ -3,11 +3,19 @@
 # Modules
 import os
 import time
-from flask import Flask
+import shutil
 from dotenv import load_dotenv
+from multiprocessing import Process
+from werkzeug.utils import secure_filename
+
+from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_apscheduler import APScheduler
-from werkzeug.utils import secure_filename
+try:
+    from flask_session import Session
+
+except ImportError:
+    Session = None
 
 from .config import Config
 from .database import DBHandler
@@ -27,9 +35,13 @@ app.config.from_object(Config())
 app.config["UPLOAD_DIRECTORY"] = os.path.abspath(rpath("../db/uploads"))
 
 app.db = DBHandler(Bcrypt(app)).db
-app.version = "1.0.7"
+app.version = "1.0.8"
 app.secret_key = os.getenv("SECRET_KEY")
 
+if Session is not None:
+    Session(app)
+
+# APScheduler init
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
@@ -39,8 +51,10 @@ scheduler.start()
 def insert_globals() -> dict:
     return {"app": app}
 
-# Launch reaper
-if os.getenv("_WT_REAPER_LAUNCHED") != "1":
+# Post-initialization tasks
+if os.getenv("WT_INITIALIZED") != "1":
+
+    # Launch reaper
     @scheduler.task("interval", id = "reaper-interval", seconds = 60 * 5)
     def run_reaper():
         db = app.db("uploads")
@@ -53,7 +67,21 @@ if os.getenv("_WT_REAPER_LAUNCHED") != "1":
         if db.cursor.fetchone()["changes()"] > 0:
             db.conn.commit()
 
-    os.environ["_WT_REAPER_LAUNCHED"] = "1"
+    # Launch redis
+    if Session is not None:
+        redis_path = os.environ.get("REDIS_BINARY", shutil.which("redis-server"))
+        if redis_path is None:
+            exit("Failed to locate Redis server binary; you can specify this with the REDIS_BINARY environment variable")
+
+        p = Process(target = os.system, args = (f"\"{redis_path}\" \"{os.path.join(os.path.dirname(__file__), 'redis.conf')}\"",))
+        p.start()
+
+    else:
+        print("WARN: flask-session is not available, falling back to built-in session\n"
+              "WARN: for security purposes, please install flask-session and relaunch WebTransfer")
+
+    # Mark as initialized
+    os.environ["WT_INITIALIZED"] = "1"
 
 # Routes
 from .routes import public  # noqa

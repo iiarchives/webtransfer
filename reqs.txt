@@ -1,5 +1,9 @@
-flask
+redis
 bcrypt
-flask-bcrypt
 python-dotenv
+
+# Flask Modules
+flask
+flask-bcrypt
+Flask-Session
 Flask-APScheduler
