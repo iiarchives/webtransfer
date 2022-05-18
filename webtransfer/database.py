@@ -125,9 +125,7 @@ class UploadDB(InheritedDB):
         self.conn.commit()
 
     def get_files(self, user_hash: str) -> list:
-        # BEWARE: NORMALLY THIS WOULD COUNT AS SQL INJECTION, HOWEVER USER_HASH IS STORED IN SESSION DATA
-        # THE USER HAS ABSOLUTELY NO CONTROL OVER THIS VARIABLE, AND THEREFOR THIS STATEMENT IS SAFE.
-        self.cursor.execute(f"SELECT userhash, filename, filesize, expires FROM uploads WHERE instr(recipients, '{user_hash}') > 0")
+        self.cursor.execute("SELECT userhash, filename, filesize, expires FROM uploads WHERE instr(recipients, ?) > 0", (user_hash,))
         return [c | {"username": self.authdb.hash_to_username(c["userhash"])} for c in self.cursor.fetchall()]
 
     def get_files_of_author(self, user_hash: str) -> list:
@@ -141,9 +139,7 @@ class UploadDB(InheritedDB):
         ]
 
     def can_download(self, user_hash: str, author_hash: str, filename: str) -> bool:
-        # BEWARE: NORMALLY THIS WOULD COUNT AS SQL INJECTION, HOWEVER USER_HASH IS STORED IN SESSION DATA
-        # THE USER HAS ABSOLUTELY NO CONTROL OVER THIS VARIABLE, AND THEREFOR THIS STATEMENT IS SAFE.
-        self.cursor.execute(f"SELECT filename FROM uploads WHERE userhash=? AND filename=? AND instr(recipients, '{user_hash}') > 0", (author_hash, filename))
+        self.cursor.execute("SELECT filename FROM uploads WHERE userhash=? AND filename=? AND instr(recipients, ?) > 0", (author_hash, filename, user_hash))
         return bool(self.cursor.fetchone())
 
     def delete_file(self, user_hash: str, filename: str) -> None:
