@@ -60,17 +60,6 @@ To pass this to WebTransfer, either use the `SECRET_KEY` environment variable or
 > If you're running via command line:  
 > `SECRET_KEY="hopefully a long and secure string" python3 ...`
 
-For security reasons, a quite important thing to do is migrate from the built-in Flask sessions to the open-source [Flask-Session](https://redis.io/) module. This however will require an installation of [Redis](https://redis.io/), and could potentially slow down your instance (though by milliseconds).  
-To set this up, follow these steps:
-- Install Redis ([link](https://redis.io/)):
-    - Debian: `sudo apt install redis`
-    - Fedora: `sudo dnf install redis`
-- Set the `redis-server` binary location:
-    - If on your PATH, it will automatically be picked up
-    - Otherwise, set the `REDIS_BINARY` environment variable
-- Install Flask-Session (`python3 -m pip install Flask-Session`)
-- Relaunch WebTransfer
-
 Another **very** important thing to do (for both security and performance) is to switch to [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) if you plan on making your instance public. The built-in Werkzeug server will perform terribly compared to something as basic as [gunicorn](https://gunicorn.org).
 
 In the event that you do use gunicorn you could run the following:
@@ -81,7 +70,6 @@ In the event that you do use gunicorn you could run the following:
 ### Launching
 
 Before you launch, ensure the following:
-- You have [Redis](https://redis.io/) installed on your system (if using [Flask-Session](https://flask-session.readthedocs.io/en/latest/))
 - You have enough space for uploads on the current drive
 
 If you are launching with any form of uWSGI server, make sure you **only have 1 worker**.  

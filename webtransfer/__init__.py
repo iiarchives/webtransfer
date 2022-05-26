@@ -3,9 +3,7 @@
 # Modules
 import os
 import time
-import shutil
 from dotenv import load_dotenv
-from multiprocessing import Process
 from werkzeug.utils import secure_filename
 
 from flask import Flask
@@ -38,9 +36,6 @@ app.db = DBHandler(Bcrypt(app)).db
 app.version = "1.0.8"
 app.secret_key = os.getenv("SECRET_KEY")
 
-if Session is not None:
-    Session(app)
-
 # APScheduler init
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -66,19 +61,6 @@ if os.getenv("WT_INITIALIZED") != "1":
         db.cursor.execute("SELECT changes()")
         if db.cursor.fetchone()["changes()"] > 0:
             db.conn.commit()
-
-    # Launch redis
-    if Session is not None:
-        redis_path = os.environ.get("REDIS_BINARY", shutil.which("redis-server"))
-        if redis_path is None:
-            exit("Failed to locate Redis server binary; you can specify this with the REDIS_BINARY environment variable")
-
-        p = Process(target = os.system, args = (f"\"{redis_path}\" \"{os.path.join(os.path.dirname(__file__), 'redis.conf')}\"",))
-        p.start()
-
-    else:
-        print("WARN: flask-session is not available, falling back to built-in session\n"
-              "WARN: for security purposes, please install flask-session and relaunch WebTransfer")
 
     # Mark as initialized
     os.environ["WT_INITIALIZED"] = "1"

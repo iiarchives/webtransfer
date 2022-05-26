@@ -10,6 +10,9 @@ def check_auth() -> None:
     ep = request.endpoint or "/"
     if "userauth" not in session and "route_user_" in ep:
         if ep.split("_")[-1] not in ["login", "register"]:
+            if ep != "/":
+                session["redirect_endpoint"] = ep
+
             return redirect(url_for("route_user_login"))
 
 # Routes
@@ -36,8 +39,14 @@ def route_user_login() -> None:
     if auth_data is None:
         return render_template("user/auth/login.html", message = "Invalid username or password."), 403
 
+    print(auth_data)
     session["userauth"] = auth_data
-    return redirect(url_for("route_user_dash"))
+    if "redirect_endpoint" not in session:
+        return redirect(url_for("route_user_dash"))
+
+    endpoint = session["redirect_endpoint"]
+    del session["redirect_endpoint"]
+    return redirect(url_for(endpoint))
 
 @app.route("/user/register", methods = ["GET", "POST"])
 def route_user_register() -> None:
@@ -63,7 +72,12 @@ def route_user_register() -> None:
         return render_template("user/auth/register.html", username = username, error = error), 400
 
     session["userauth"] = app.db("auth").check_login(username, password)
-    return redirect(url_for("route_user_dash"))
+    if "redirect_endpoint" not in session:
+        return redirect(url_for("route_user_dash"))
+
+    endpoint = session["redirect_endpoint"]
+    del session["redirect_endpoint"]
+    return redirect(url_for(endpoint))
 
 @app.route("/user/logout", methods = ["GET"])
 def route_user_logout() -> None:
