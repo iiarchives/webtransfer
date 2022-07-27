@@ -7,9 +7,6 @@
 *What is WebTransfer?*
 > WebTransfer is a fast and free file sharing service designed to be privacy-respecting.
 
-*Is WebTransfer public?*
-> Yes! WebTransfer is publicly available [here](https://wt.iipython.cf).
-
 *How much space does WebTransfer give you?*
 > Each user gets a set amount of storage (by default, 6 gigabytes), and can upload files upto 2 gigabytes in size. After you upload a file, it expires in 24 hours to save storage space.
 
@@ -40,7 +37,7 @@ If you built Python from source (Linux only):
 
 Begin setting up WebTransfer:
 ```bash
-git clone https://github.com/ii-Python/webtransfer
+git clone https://github.com/iiPythonx/webtransfer
 cd webtransfer
 python3 -m pip install -r reqs.txt
 ```
